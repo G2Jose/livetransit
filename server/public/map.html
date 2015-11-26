@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Circles</title>
+    <link rel="stylesheet" type="text/css" href="custom.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    <script>
+
+var cityCircle;
+
+var infoWindow = new google.maps.InfoWindow();  
+
+function initialize() {
+	var mapOptions = {
+		zoom: 16,
+		center: new google.maps.LatLng(43.64467,-79.39959),
+	};
+
+	var map = new google.maps.Map(document.getElementById('map-canvas'),
+	mapOptions);
+	var vehicles = [];
+	var ages = [];
+	var circles = new Array();
+	setInterval(function(){
+
+		
+		$.ajax({
+	        type: "GET",
+	        url: "http://localhost:501/agencies/ttc/vehicles",
+	        success: function(response) {
+	        	vehicles = [];
+	        	for (var i = 0; i < response.length;i++){
+	        		vehicles.push(new google.maps.LatLng(parseFloat(response[i].lat), parseFloat(response[i].lon)));
+	        		ages.push(parseFloat(response[i].secsSinceReport));
+	        	}
+
+	        	for(var i = 0; i< circles.length; i++){
+	        		circles[i].setMap(null);
+	        	}
+	        	circles = [];
+
+ 	            // $("#response").html(JSON.stringify(vehicles));
+	            for (var i= 0; i< vehicles.length; i++) {
+	            	var color = "";
+	            	if(ages[i]>=30){
+	            		color = "#CC0000";
+	            	}else if(ages[i]>=15){
+	            		color = "#000000";
+	            	}else{
+	            		color = "#008900";
+	            	}
+					var options = {
+						map: map,
+						center: vehicles[i],
+						infoWindowIndex: i, 
+						radius:10,
+						strokeColor:color,
+						strokeOpacity:1,
+						strokeWeight:0.01,
+						fillColor:color,
+						fillOpacity:1
+					};
+					circles.push(new google.maps.Circle(options));
+					delete color;
+					// cityCircle.setMap(null);
+				}
+				// cityCircle.setMap(null);
+	        }
+	    });
+	    delete vehicles;
+	}, 2000);
+
+	
+
+
+	 
+}
+google.maps.event.addDomListener(window, 'load', initialize);
+
+    </script>
+  </head>
+  <body>
+    <div class="map" id="map-canvas"></div>
+    <div id = "response"></div>
+  </body>
+</html>
