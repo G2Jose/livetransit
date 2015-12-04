@@ -96,6 +96,6 @@ function initialize() {
 	        }
 	    });
 	}
-	setInterval(doStuff, 5000);
+	setInterval(doStuff, 3000);
 }
 google.maps.event.addDomListener(window, 'load', initialize);
