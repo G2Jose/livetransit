@@ -5,13 +5,12 @@ var cityCircle;
 var options = {
 	radius:10,
 	strokeOpacity:1,
-	strokeWeight:0.01,
+	strokeWeight:0.5,
 	fillOpacity:1, 
 	strokeColor: "#FFFFFF"
 };
 
 var polygonOptions = {
-	
 }
 
 var infoWindow = new google.maps.InfoWindow();  
@@ -44,6 +43,7 @@ var allCircles =[];
 var circlesToRemove = [];
 var circles = {};
 var itemsChanged = 0;
+var opacity = 0;
 
 function initialize() {
 	var mapOptions = {
@@ -58,7 +58,7 @@ function initialize() {
 	        type: "GET",
 	        url: "http://restbus.info/api/agencies/ttc/vehicles",
 	        success: function(response) {
-	        	console.log("recieved response");
+	        	// console.log("recieved response");
 	        	itemsChanged = 0;
 	        	var rl = response.length;
 
@@ -68,13 +68,16 @@ function initialize() {
 	        		var age = response[i]["secsSinceReport"];
 	        		var heading = response[i]["heading"];
 	        		var color = "#000000";
-	        		if(age>=30){
-	            		color = "#CC0000";
-	            	}else if(age>=15){
-	            		color = "#000000";
-	            	}else{
-	            		color = "#008900";
-	            	}
+	        		// if(age>=30){
+	          //   		color = "#CC0000";
+	          //   	}else if(age>=15){
+	          //   		color = "#000000";
+	          //   	}else{
+	          //   		color = "#008900";
+	          //   	}
+
+	          		opacity = (100 - 5.0/3.0 * age)/ 100;
+	          		// console.log(opacity);
 	        		if (!(id in vehicles)){
 	        			vehicles[id] = {
 	        				"xy": xy,
@@ -90,10 +93,12 @@ function initialize() {
 							vehicles[id]["xy"] = xy;
 							options.center = xy;
 							options.fillColor = color;
+							options.fillOpacity = opacity;
 							circles[id] = new google.maps.Circle(options);
 						}else{
 							circles[id].setOptions({
-								"fillColor": color
+								"fillColor": color, 
+								"fillOpacity": opacity
 							})
 						}
 	        		}
