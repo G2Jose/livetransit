@@ -10,6 +10,10 @@ var options = {
 	strokeColor: "#FFFFFF"
 };
 
+var polygonOptions = {
+	
+}
+
 var infoWindow = new google.maps.InfoWindow();  
 
 function toRad(degrees){
@@ -33,7 +37,7 @@ function x3(theta){
 function y3(theta){
 	return -1 * b * Math.sin(-1* theta * Math.PI/ 180)
 }
-
+var polygons = {};
 var vehicles = {};
 var ages = [];
 var allCircles =[];
@@ -62,6 +66,7 @@ function initialize() {
 	        		var id = response[i]["id"];
 	        		var xy = new google.maps.LatLng(parseFloat(response[i]["lat"]), parseFloat(response[i]["lon"]));
 	        		var age = response[i]["secsSinceReport"];
+	        		var heading = response[i]["heading"];
 	        		var color = "#000000";
 	        		if(age>=30){
 	            		color = "#CC0000";
