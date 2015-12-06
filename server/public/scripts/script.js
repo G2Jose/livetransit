@@ -11,6 +11,15 @@ var options = {
 };
 
 var polygonOptions = {
+	icon:{
+		path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, 
+		scale: 1.5, 
+		fillColor: '#000080', 
+		strokeColor: '#000080',
+		fillOpacity: 1,
+		strokeOpacity: 1
+	}, 
+	draggable: false
 }
 
 var infoWindow = new google.maps.InfoWindow();  
@@ -39,8 +48,6 @@ function y3(theta){
 var polygons = {};
 var vehicles = {};
 var ages = [];
-var allCircles =[];
-var circlesToRemove = [];
 var circles = {};
 var itemsChanged = 0;
 var opacity = 0;
@@ -53,6 +60,7 @@ function initialize() {
 	var map = new google.maps.Map(document.getElementById('map-canvas'),
 	mapOptions);
 	options.map = map;
+	polygonOptions.map = map;
 	function doStuff(){
 		$.ajax({
 	        type: "GET",
@@ -67,42 +75,58 @@ function initialize() {
 	        		var xy = new google.maps.LatLng(parseFloat(response[i]["lat"]), parseFloat(response[i]["lon"]));
 	        		var age = response[i]["secsSinceReport"];
 	        		var heading = response[i]["heading"];
-	        		var color = "#000000";
-	        		// if(age>=30){
-	          //   		color = "#CC0000";
-	          //   	}else if(age>=15){
-	          //   		color = "#000000";
-	          //   	}else{
-	          //   		color = "#008900";
-	          //   	}
+	        		var color = "#008900";
 
+	          		polygonOptions.icon.rotation = parseFloat(heading);
+	          		// console.log("Rotation: " + polygonOptions.rotation);
 	          		opacity = (100 - 5.0/3.0 * age)/ 100;
-	          		// console.log(opacity);
+	          		
 	        		if (!(id in vehicles)){
 	        			vehicles[id] = {
 	        				"xy": xy,
 	        				"age": age
 	        			}
-	        			options.center = xy;
-	        			options.fillColor = color;
-	        			circles[id] = new google.maps.Circle(options);
+	        			// options.center = xy;
+	        			// options.fillColor = color;
+	        			polygonOptions.position = xy;
+	        			polygonOptions.icon.fillOpacity = opacity;
+	        			polygonOptions.icon.strokeOpacity = opacity;
+
+	        			// circles[id] = new google.maps.Circle(options);
+	        			polygons[id] = new google.maps.Marker(polygonOptions);
+
 	        		} else{
 						if(vehicles[id]["xy"].lat() != xy.lat()){
-							circles[id].setMap(null);
+							// circles[id].setMap(null);
+							polygons[id].setMap(null);
 							itemsChanged += 1;
+							// console.log(itemsChanged);
 							vehicles[id]["xy"] = xy;
-							options.center = xy;
-							options.fillColor = color;
-							options.fillOpacity = opacity;
-							circles[id] = new google.maps.Circle(options);
+							// options.center = xy;
+							// options.fillColor = color;
+							// options.fillOpacity = opacity;
+							polygonOptions.position = xy;
+							polygonOptions.icon.fillOpacity = opacity;
+	        				polygonOptions.icon.strokeOpacity = opacity;
+							// circles[id] = new google.maps.Circle(options);
+							polygons[id] = new google.maps.Marker(polygonOptions);
 						}else{
-							circles[id].setOptions({
-								"fillColor": color, 
-								"fillOpacity": opacity
-							})
+							// circles[id].setOptions({
+							// 	"fillColor": color, 
+							// 	"fillOpacity": opacity
+							// })
+	        				polygons[id].setOpacity(opacity);
+	        				// console.log(polygons[id].getOpacity());
+
+							// polygons[id].setOptions({
+							// 	"fillColor": color, 
+							// 	"fillOpacity": opacity
+							// })
 						}
 	        		}
+
 	        	}
+	        	console.log("Items changed: " + itemsChanged);
 	        }
 	    });
 	}
