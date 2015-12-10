@@ -21,7 +21,7 @@ var polygonOptions = {
 		fillOpacity: 1,
 		strokeOpacity: 1, 
 	}, 
-	duration: 3000,
+	duration: 5000,
 	draggable: false, 
 	title: "ABC"
 }
@@ -119,6 +119,7 @@ function initialize() {
 
 							// polygons[id] = new google.maps.Marker(polygonOptions);
 							// polygons[id].setOptions(polygonOptions);
+							polygons[id].setOpacity(opacity);
 							polygons[id].setIcon(polygonOptions.icon);
 							polygons[id].setPosition(xy);
 						}else{
