@@ -1,3 +1,5 @@
+SlidingMarker.initializeGlobally();
+
 m = 100; 
 b = 10;
 var cityCircle;
@@ -17,9 +19,11 @@ var polygonOptions = {
 		fillColor: '#000080', 
 		strokeColor: '#000080',
 		fillOpacity: 1,
-		strokeOpacity: 1
+		strokeOpacity: 1, 
 	}, 
-	draggable: false
+	duration: 3000,
+	draggable: false, 
+	title: "ABC"
 }
 
 var infoWindow = new google.maps.InfoWindow();  
@@ -76,7 +80,7 @@ function initialize() {
 	        		var age = response[i]["secsSinceReport"];
 	        		var heading = response[i]["heading"];
 	        		var color = "#008900";
-
+	        		polygonOptions.title = response[i]["routeId"];
 	          		polygonOptions.icon.rotation = parseFloat(heading);
 	          		// console.log("Rotation: " + polygonOptions.rotation);
 	          		opacity = (100 - 5.0/3.0 * age)/ 100;
@@ -93,12 +97,15 @@ function initialize() {
 	        			polygonOptions.icon.strokeOpacity = opacity;
 
 	        			// circles[id] = new google.maps.Circle(options);
-	        			polygons[id] = new google.maps.Marker(polygonOptions);
+	        			// polygons[id] = new google.maps.Marker(polygonOptions);
+	        			polygons[id] = new SlidingMarker(polygonOptions);
 
 	        		} else{
 						if(vehicles[id]["xy"].lat() != xy.lat()){
 							// circles[id].setMap(null);
-							polygons[id].setMap(null);
+
+							// polygons[id].setMap(null);
+
 							itemsChanged += 1;
 							// console.log(itemsChanged);
 							vehicles[id]["xy"] = xy;
@@ -109,7 +116,11 @@ function initialize() {
 							polygonOptions.icon.fillOpacity = opacity;
 	        				polygonOptions.icon.strokeOpacity = opacity;
 							// circles[id] = new google.maps.Circle(options);
-							polygons[id] = new google.maps.Marker(polygonOptions);
+
+							// polygons[id] = new google.maps.Marker(polygonOptions);
+							// polygons[id].setOptions(polygonOptions);
+							polygons[id].setIcon(polygonOptions.icon);
+							polygons[id].setPosition(xy);
 						}else{
 							// circles[id].setOptions({
 							// 	"fillColor": color, 
@@ -126,7 +137,7 @@ function initialize() {
 	        		}
 
 	        	}
-	        	console.log("Items changed: " + itemsChanged);
+	        	// console.log("Items changed: " + itemsChanged);
 	        }
 	    });
 	}
