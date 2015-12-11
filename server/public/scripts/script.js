@@ -2,6 +2,14 @@ SlidingMarker.initializeGlobally();
 
 m = 100; 
 b = 10;
+var polygons = {};
+var vehicles = {};
+var routes = {};
+var stops = {};
+var ages = [];
+var circles = {};
+var itemsChanged = 0;
+var opacity = 0;
 var cityCircle;
 
 var options = {
@@ -49,12 +57,21 @@ function x3(theta){
 function y3(theta){
 	return -1 * b * Math.sin(-1* theta * Math.PI/ 180)
 }
-var polygons = {};
-var vehicles = {};
-var ages = [];
-var circles = {};
-var itemsChanged = 0;
-var opacity = 0;
+function getDistance(xy1, xy2){
+	return Math.sqrt(Math.pow((xy2.lat() - xy1.lat()), 2) - Math.pow((xy2.lon() - xy1.lon()), 2));
+}
+
+function getStops(route){
+	$.ajax({
+		type: "GET", 
+		url: "http://restbus.info/agencies/ttc/routes/" + route,
+		success: function(response){
+			stops = JSON.parse(response)["stops"];
+		}
+	})
+}
+
+
 
 function initialize() {
 	var mapOptions = {
