@@ -3,6 +3,8 @@ SlidingMarker.initializeGlobally();
 m = 100; 
 b = 10;
 var polygons = {};
+var xyOld = {};
+var xyNew = {};
 var vehicles = {};
 var routes = {};
 var stops = {};
@@ -39,41 +41,68 @@ var infoWindow = new google.maps.InfoWindow();
 function toRad(degrees){
 	return parseFloat(degrees) * Math.PI/180;
 }
-function x1(theta){
-	return Math.sin(theta * Math.PI / 180) * Math.pow((Math.pow(m, 2) - Math.pow(b, 2)), 1/2);
-}
-function y1(theta){
-	return Math.cos(theta * Math.PI / 180) * Math.pow((Math.pow(m, 2) - Math.pow(b, 2)), 1/2);
-}
-function x2(theta){
-	return Math.cos( -1 * theta * Math.PI / 180) * b
-}
-function y2(theta){
-	return b * Math.sin(-1* theta * Math.PI/ 180)
-}
-function x3(theta){
-	return -1 * Math.cos( -1 * theta * Math.PI / 180) * b
-}
-function y3(theta){
-	return -1 * b * Math.sin(-1* theta * Math.PI/ 180)
-}
-function getDistance(xy1, xy2){
-	return Math.sqrt(Math.pow((xy2.lat() - xy1.lat()), 2) - Math.pow((xy2.lon() - xy1.lon()), 2));
-}
+// function getDistance(lat1, lat2, lon1, lon2){
+// 	// return Math.sqrt(Math.pow((xy2.lat() - xy1.lat()), 2) - Math.pow((xy2.lon() - xy1.lon()), 2));
+// 	return Math.sqrt(Math.pow((lat2 - lat1), 2) - Math.pow((lon2, lon1), 2));
+
+// }
+
+var getDistance = function(p1, p2) {
+  var R = 6378137; // Earth’s mean radius in meter
+  var dLat = toRad(p2.lat() - p1.lat());
+  var dLong = toRad(p2.lng() - p1.lng());
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(p1.lat())) * Math.cos(toRad(p2.lat())) *
+    Math.sin(dLong / 2) * Math.sin(dLong / 2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var d = R * c;
+  return d; // returns the distance in meter
+};
 
 function getStops(route){
 	$.ajax({
 		type: "GET", 
-		url: "http://restbus.info/agencies/ttc/routes/" + route,
+		url: "http://restbus.info/api/agencies/ttc/routes/" + route,
 		success: function(response){
-			stops = JSON.parse(response)["stops"];
+			console.log(response);
+			stops = response["stops"];
 		}
 	})
 }
 
+function getClosestStop(XY, stops){
+	var closestIndex = 0; 
+	for(var i = 0; i < stops.length; i ++){
+		if(getDistance(XY, new google.maps.LatLng(parseFloat(stops[i]["lat"]), parseFloat(stops[i]["lon"]))) < getDistance(XY, new google.maps.LatLng(parseFloat(stops[closestIndex]["lat"]), parseFloat(stops[i]["lon"]))))
+			closestIndex = i;
+	}
+	var stopPoint = new google.maps.LatLng(stops[closestIndex]["lat"], stops[closestIndex]["lon"]);
+	console.log(closestIndex + ": "+ stops[closestIndex]["title"] + " heading: " + google.maps.geometry.spherical.computeHeading(XY,stopPoint));
 
+}
+
+function getNextStop(XY, XYOld, stops){
+	var closestIndex = 0; 
+	for(var i = 0; i < stops.length; i ++){
+		var stopPoint = new google.maps.LatLng(stops[i]["lat"], stops[i]["lon"]);
+		var currentDistance = getDistance(XY, new google.maps.LatLng(parseFloat(stops[i]["lat"]), parseFloat(stops[i]["lon"])));
+		var oldDistance = getDistance(XY, new google.maps.LatLng(parseFloat(stops[closestIndex]["lat"]), parseFloat(stops[i]["lon"])));
+		var angle1 = google.maps.geometry.spherical.computeHeading(XY,stopPoint);
+		console.log("old: " + XYOld);
+		console.log("new: " + XY);
+		var angle2 = google.maps.geometry.spherical.computeHeading(XYOld,XY);
+
+		// console.log("currentDistance: " + currentDistance + " oldDistance: " + oldDistance + " heading: " + angle1 + " heading2: " + angle2);
+		if(currentDistance < oldDistance)
+			closestIndex = i;
+	}
+	
+	// console.log(closestIndex + ": "+ stops[closestIndex]["title"] + " heading: " + google.maps.geometry.spherical.computeHeading(XY,stopPoint));
+
+}
 
 function initialize() {
+	getStops(504);
 	var mapOptions = {
 		zoom: 15,
 		center: new google.maps.LatLng(43.64467,-79.39959),
@@ -85,7 +114,7 @@ function initialize() {
 	function doStuff(){
 		$.ajax({
 	        type: "GET",
-	        url: "http://restbus.info/api/agencies/ttc/vehicles",
+	        url: "http://restbus.info/api/agencies/ttc/routes/504/vehicles",
 	        success: function(response) {
 	        	// console.log("recieved response");
 	        	itemsChanged = 0;
@@ -94,6 +123,7 @@ function initialize() {
 	        	for (var i = 0; i < rl; i++){
 	        		var id = response[i]["id"];
 	        		var xy = new google.maps.LatLng(parseFloat(response[i]["lat"]), parseFloat(response[i]["lon"]));
+	        		xyNew[id] = xy;
 	        		var age = response[i]["secsSinceReport"];
 	        		var heading = response[i]["heading"];
 	        		var color = "#008900";
@@ -107,55 +137,32 @@ function initialize() {
 	        				"xy": xy,
 	        				"age": age
 	        			}
-	        			// options.center = xy;
-	        			// options.fillColor = color;
+	        			xyOld[id]  = xy;
 	        			polygonOptions.position = xy;
 	        			polygonOptions.icon.fillOpacity = opacity;
 	        			polygonOptions.icon.strokeOpacity = opacity;
-
-	        			// circles[id] = new google.maps.Circle(options);
-	        			// polygons[id] = new google.maps.Marker(polygonOptions);
 	        			polygons[id] = new SlidingMarker(polygonOptions);
 
 	        		} else{
 						if(vehicles[id]["xy"].lat() != xy.lat()){
-							// circles[id].setMap(null);
-
-							// polygons[id].setMap(null);
-
 							itemsChanged += 1;
-							// console.log(itemsChanged);
 							vehicles[id]["xy"] = xy;
-							// options.center = xy;
-							// options.fillColor = color;
-							// options.fillOpacity = opacity;
 							polygonOptions.position = xy;
 							polygonOptions.icon.fillOpacity = opacity;
 	        				polygonOptions.icon.strokeOpacity = opacity;
-							// circles[id] = new google.maps.Circle(options);
-
-							// polygons[id] = new google.maps.Marker(polygonOptions);
-							// polygons[id].setOptions(polygonOptions);
 							polygons[id].setOpacity(opacity);
 							polygons[id].setIcon(polygonOptions.icon);
 							polygons[id].setPosition(xy);
 						}else{
-							// circles[id].setOptions({
-							// 	"fillColor": color, 
-							// 	"fillOpacity": opacity
-							// })
 	        				polygons[id].setOpacity(opacity);
-	        				// console.log(polygons[id].getOpacity());
-
-							// polygons[id].setOptions({
-							// 	"fillColor": color, 
-							// 	"fillOpacity": opacity
-							// })
 						}
 	        		}
-
+	        		getNextStop(xyNew[id], xyOld[id], stops);
+	        		xyOld[id] = xyNew[id];
+	        		xyNew[id] = '';
 	        	}
-	        	// console.log("Items changed: " + itemsChanged);
+	        	xyOld = xyNew; 
+	        	xyNew = {};
 	        }
 	    });
 	}
