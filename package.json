@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./server/bin/www",
-    "start-dev": "concurrently \"node ./server/bin/www\" \"babel ./server/public/scripts/script.js --watch --out-file ./server/public/scripts/script-compiled.js\""
+    "start-dev": "concurrently \"node ./server/bin/www\" \"babel ./server/public/scripts/logic/script.js --watch --out-file ./server/public/scripts/script-compiled.js\""
   },
   "dependencies": {
     "body-parser": "~1.13.2",
