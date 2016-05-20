@@ -61,8 +61,8 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-restbus.listen('501', function() {
-  console.log('restbus is now listening on port 501');
+restbus.listen('8081', function() {
+  console.log('restbus is now listening on port 8081');
 });
 
 module.exports = app;
