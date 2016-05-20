@@ -9,6 +9,10 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var restbus = require('restbus');
 
+var livereload = require('livereload');
+server = livereload.createServer();
+server.watch(__dirname + "/public/");
+console.log('dirname', __dirname + "/public/");
 
 var app = express();
 
