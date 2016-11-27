@@ -1,5 +1,7 @@
 #livetransit
 
+## [A revised version of this written in react can be found here](https://github.com/G2Jose/transit-tracker)
+
 A Google Maps overlay showing current locations of all TTC streetcars and buses. Opacity of points displayed represent the relative age of the location. A 100% opacity represents a location that was last updated 0s ago, and a 0% opacity represents a location that was last updated 60s ago. 
 
 A working demo can be found at www.georgejose.com/projects/livetransit/map.html
